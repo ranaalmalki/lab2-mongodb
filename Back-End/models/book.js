@@ -10,7 +10,8 @@ const bookSchema = new Schema(
             required: true,
         },
         Author: {
-            type: String,
+            type: mongoose.Schema.Types.ObjectId,
+            ref:"User",
             required: true,
         },
         Edition_number: {

@@ -1,9 +1,9 @@
-import express from "express"; //افضل من الريكواير 
+import express from "express";
 import mongoose from "mongoose";
-import Book from "./models/book.js";
 import dotenv from "dotenv"
-
-
+import router from "./routers/userRouter.js";
+import jwt from 'jsonwebtoken';
+import Book from './models/book.js';
 dotenv.config()
 const app = express()
 app.use(express.json());
@@ -18,27 +18,25 @@ async function main() {
   
   }
 
+  //reegister
 
 
-    app.post("/addBook",(req,res)=>{
-        const book = new Book({
-            Book_title:req.body.Book_title,
-            Author: req.body.Author,
-            Edition_number: req.body.Edition_number,
-            Publisher: req.body.Publisher,
-            electronic_version:req.body.electronic_version,
-            price: req.body.price,
-            languages_supported: req.body.languages_supported || [],
-        
-            classification:req.body.classification,
-          
+function authenticateToken(req, res, next) {
+    const token = req.header('Authorization').split(' ')[1];
+    if (!token) return res.status(401).json({ message: 'Access Denied' });
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ message: 'Invalid Token' });
+        req.user = user;
+        next();
     })
-    book.save()
-    .then((result)=>{
-res.send(result)
-    })
-})
-    
+
+}
+app.use('/api/user',authenticateToken, router);
+
+
+
+//login
+
 
 
 app.get("/addBook",(req,res)=>{
@@ -75,7 +73,7 @@ app.delete("/addBook/:id",(req,res)=>{
         
         })
 
-const port = 3000 
+const port = process.env.PORT || 3000;
 
 app.listen(port,()=>{
     console.log(`Server is running on port ${port}`);
